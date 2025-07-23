@@ -1,0 +1,42 @@
+const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
+const fs = require('fs');
+const path = require('path');
+
+async function gerarNota(venda) {
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([300, 500]);
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  let y = 450;
+
+  const write = (text, size = 10, align = 'left') => {
+    const textWidth = font.widthOfTextAtSize(text, size);
+    const x = align === 'center' ? (300 - textWidth) / 2 : 20;
+    page.drawText(text, { x, y, size, font, color: rgb(0, 0, 0) });
+    y -= 16;
+  };
+
+  write("MERCADINHO FÁCIL", 14, 'center');
+  write("Rua das Flores, 123", 9, 'center');
+  write("(11) 99999-8888", 9, 'center');
+  write("----------------------------");
+  write(`Venda #${venda.id}`);
+  write(`Data: ${new Date(venda.data).toLocaleString()}`);
+  write(`Cliente: ${venda.cliente?.nome || 'Consumidor'}`);
+  write("----------------------------");
+  venda.itens.forEach(item => {
+    write(`${item.quantidade}x ${item.produto.nome}`);
+    write(`              R$ ${(item.preco_unitario * item.quantidade).toFixed(2)}`, 10, 'right');
+  });
+  write("----------------------------");
+  write(`Total: R$ ${venda.total.toFixed(2)}`, 12);
+  write(`Pagamento: ${venda.forma_pagamento}`);
+  write("----------------------------");
+  write("Obrigado pela preferência!", 9, 'center');
+
+  const pdfBytes = await pdfDoc.save();
+  const filePath = path.join(__dirname, '../../pdfs', `nota_${venda.id}.pdf`);
+  fs.writeFileSync(filePath, pdfBytes);
+  return `/pdfs/nota_${venda.id}.pdf`;
+}
+
+module.exports = gerarNota;

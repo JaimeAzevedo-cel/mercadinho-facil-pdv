@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nota Fiscal</title>
+  <style>
+    body { font-family: monospace; width: 80mm; margin: 20px auto; }
+    .center { text-align: center; }
+  </style>
+</head>
+<body onload="carregarNota()">
+  <div id="nota"></div>
+  <div class="text-center mt-3">
+    <button onclick="window.print()">🖨️ Imprimir</button>
+    <button onclick="window.close()">Fechar</button>
+  </div>
+
+  <script src="../public/js/nota.js"></script>
+</body>
+</html>

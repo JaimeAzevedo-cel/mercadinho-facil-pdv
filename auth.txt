@@ -1,0 +1,21 @@
+const express = require('express');
+const router = express.Router();
+const bcrypt = require('bcrypt');
+const pool = require('../models/database');
+
+router.post('/login', async (req, res) => {
+  const { email, senha } = req.body;
+  const [rows] = await pool.execute('SELECT * FROM usuarios WHERE email = ?', [email]);
+  if (rows.length === 0) return res.status(401).json({ error: 'Credenciais inválidas' });
+
+  const user = rows[0];
+  if (await bcrypt.compare(senha, user.senha)) {
+    req.session.userId = user.id;
+    req.session.userName = user.nome;
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ error: 'Credenciais inválidas' });
+  }
+});
+
+module.exports = router;

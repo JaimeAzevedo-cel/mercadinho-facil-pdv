@@ -1,0 +1,4 @@
+// Após gerar a nota
+window.open(`/pdfs/nota_${venda.id}.pdf`, '_blank');
+// Ou imprima diretamente:
+// window.print(); com CSS @media print { size: 58mm 200mm; }

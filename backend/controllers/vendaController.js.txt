@@ -1,0 +1,46 @@
+const pool = require('../models/database');
+const gerarNota = require('../utils/gerarNota'); // Vamos criar esse arquivo depois
+
+exports.criar = async (req, res) => {
+  const { cliente_id, itens, total, forma_pagamento } = req.body;
+
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    const [venda] = await connection.execute(
+      'INSERT INTO vendas (cliente_id, total, forma_pagamento) VALUES (?, ?, ?)',
+      [cliente_id, total, forma_pagamento]
+    );
+    const vendaId = venda.insertId;
+
+    for (const item of itens) {
+      const [produto] = await connection.execute(
+        'SELECT * FROM produtos WHERE id = ?', [item.produto_id]
+      );
+      if (produto[0].estoque < item.quantidade) {
+        await connection.rollback();
+        return res.status(400).json({ error: `Estoque insuficiente para ${produto[0].nome}` });
+      }
+
+      await connection.execute(
+        'INSERT INTO itens_venda (venda_id, produto_id, quantidade, preco_unitario) VALUES (?, ?, ?, ?)',
+        [vendaId, item.produto_id, item.quantidade, item.preco_unitario]
+      );
+
+      await connection.execute(
+        'UPDATE produtos SET estoque = estoque - ? WHERE id = ?',
+        [item.quantidade, item.produto_id]
+      );
+    }
+
+    await connection.commit();
+    res.json({ success: true, vendaId });
+
+  } catch (err) {
+    await connection.rollback();
+    res.status(500).json({ error: err.message });
+  } finally {
+    connection.release();
+  }
+};

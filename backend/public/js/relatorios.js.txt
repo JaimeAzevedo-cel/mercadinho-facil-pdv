@@ -1,0 +1,40 @@
+async function carregarVendas() {
+  const res = await fetch('/api/relatorios/vendas-dia');
+  const vendas = await res.json();
+  const tbody = document.getElementById('vendasDia');
+  tbody.innerHTML = '';
+
+  vendas.forEach(v => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${v.id}</td>
+      <td>${v.cliente_nome || 'Consumidor'}</td>
+      <td>R$ ${v.total.toFixed(2)}</td>
+      <td>${v.forma_pagamento}</td>
+      <td>${new Date(v.data).toLocaleTimeString()}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function carregarEstoqueBaixo() {
+  const res = await fetch('/api/relatorios/estoque-baixo');
+  const produtos = await res.json();
+  const tbody = document.getElementById('estoqueBaixo');
+  tbody.innerHTML = '';
+
+  produtos.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${p.nome}</td>
+      <td>${p.estoque}</td>
+      <td>${p.estoque_minimo}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+window.onload = () => {
+  carregarVendas();
+  carregarEstoqueBaixo();
+};

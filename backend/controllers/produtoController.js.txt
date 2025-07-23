@@ -1,0 +1,45 @@
+const pool = require('../models/database');
+
+exports.listar = async (req, res) => {
+  const [rows] = await pool.query('SELECT * FROM produtos');
+  res.json(rows);
+};
+
+exports.criar = async (req, res) => {
+  const { nome, codigo_barras, categoria, preco, estoque, estoque_minimo } = req.body;
+  try {
+    await pool.execute(
+      `INSERT INTO produtos (nome, codigo_barras, categoria, preco, estoque, estoque_minimo) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [nome, codigo_barras, categoria, preco, estoque, estoque_minimo]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao salvar produto' });
+  }
+};
+
+exports.atualizar = async (req, res) => {
+  const { id } = req.params;
+  const { nome, codigo_barras, categoria, preco, estoque, estoque_minimo } = req.body;
+  await pool.execute(
+    `UPDATE produtos SET nome=?, codigo_barras=?, categoria=?, preco=?, estoque=?, estoque_minimo=? WHERE id=?`,
+    [nome, codigo_barras, categoria, preco, estoque, estoque_minimo, id]
+  );
+  res.json({ success: true });
+};
+
+exports.excluir = async (req, res) => {
+  const { id } = req.params;
+  await pool.execute('DELETE FROM produtos WHERE id=?', [id]);
+  res.json({ success: true });
+};
+
+exports.buscar = async (req, res) => {
+  const termo = req.query.termo;
+  const [rows] = await pool.query(
+    'SELECT * FROM produtos WHERE nome LIKE ? OR codigo_barras = ?',
+    [`%${termo}%`, termo]
+  );
+  res.json(rows);
+};

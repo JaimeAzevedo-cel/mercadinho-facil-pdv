@@ -1,0 +1,29 @@
+async function carregarNota() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const vendaId = urlParams.get('venda');
+
+  const res = await fetch(`/api/vendas/${vendaId}`);
+  const venda = await res.json();
+
+  const div = document.getElementById('nota');
+  div.innerHTML = `
+    <div class="center">
+      <h3>MERCADINHO FÁCIL</h3>
+      <p>Rua das Flores, 123</p>
+      <p>(11) 99999-8888</p>
+      <hr>
+      <p>Venda: #${venda.id}</p>
+      <p>Data: ${new Date(venda.data).toLocaleString()}</p>
+      <p>Cliente: ${venda.cliente?.nome || 'Consumidor'}</p>
+      <hr>
+      <h5>Itens:</h5>
+    </div>
+    ${venda.itens.map(i => `
+      <p>${i.quantidade}x ${i.produto.nome} - R$ ${(i.preco_unitario * i.quantidade).toFixed(2)}</p>
+    `).join('')}
+    <hr>
+    <p><strong>Total: R$ ${venda.total.toFixed(2)}</strong></p>
+    <p>Pagamento: ${venda.forma_pagamento}</p>
+    <p class="center">Obrigado! Volte sempre!</p>
+  `;
+}

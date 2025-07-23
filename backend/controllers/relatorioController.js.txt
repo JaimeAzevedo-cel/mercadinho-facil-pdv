@@ -1,0 +1,19 @@
+const pool = require('../models/database');
+
+exports.vendasDia = async (req, res) => {
+  const [rows] = await pool.query(`
+    SELECT v.*, c.nome as cliente_nome 
+    FROM vendas v 
+    LEFT JOIN clientes c ON v.cliente_id = c.id 
+    WHERE DATE(v.data) = CURDATE() 
+    ORDER BY v.data DESC
+  `);
+  res.json(rows);
+};
+
+exports.estoqueBaixo = async (req, res) => {
+  const [rows] = await pool.query(
+    'SELECT * FROM produtos WHERE estoque <= estoque_minimo'
+  );
+  res.json(rows);
+};

@@ -1,0 +1,72 @@
+async function carregarProdutos() {
+  const res = await fetch('/api/produtos');
+  const produtos = await res.json();
+  const tbody = document.getElementById('listaProdutos');
+  tbody.innerHTML = '';
+
+  produtos.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${p.nome}</td>
+      <td>${p.codigo_barras || '---'}</td>
+      <td>${p.categoria}</td>
+      <td>R$ ${p.preco.toFixed(2)}</td>
+      <td>${p.estoque}</td>
+      <td>
+        <button class="btn btn-sm btn-warning" onclick="editar(${p.id})">Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="excluir(${p.id})">Excluir</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function salvarProduto() {
+  const id = document.getElementById('produtoId').value;
+  const dados = {
+    nome: document.getElementById('nome').value,
+    codigo_barras: document.getElementById('codigo_barras').value,
+    categoria: document.getElementById('categoria').value,
+    preco: parseFloat(document.getElementById('preco').value),
+    estoque: parseInt(document.getElementById('estoque').value),
+    estoque_minimo: parseInt(document.getElementById('estoque_minimo').value)
+  };
+
+  const method = id ? 'PUT' : 'POST';
+  const url = id ? `/api/produtos/${id}` : '/api/produtos';
+
+  const res = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dados)
+  });
+
+  if (res.ok) {
+    bootstrap.Modal.getInstance(document.getElementById('modalProduto')).hide();
+    carregarProdutos();
+  }
+}
+
+function editar(id) {
+  fetch(`/api/produtos/${id}`)
+    .then(r => r.json())
+    .then(produto => {
+      document.getElementById('produtoId').value = produto.id;
+      document.getElementById('nome').value = produto.nome;
+      document.getElementById('codigo_barras').value = produto.codigo_barras;
+      document.getElementById('categoria').value = produto.categoria;
+      document.getElementById('preco').value = produto.preco;
+      document.getElementById('estoque').value = produto.estoque;
+      document.getElementById('estoque_minimo').value = produto.estoque_minimo;
+      new bootstrap.Modal(document.getElementById('modalProduto')).show();
+    });
+}
+
+async function excluir(id) {
+  if (confirm('Tem certeza que deseja excluir?')) {
+    await fetch(`/api/produtos/${id}`, { method: 'DELETE' });
+    carregarProdutos();
+  }
+}
+
+window.onload = carregarProdutos;

@@ -1,0 +1,12 @@
+const express = require('express');
+const router = express.Router();
+const { auth } = require('../middleware/authMiddleware');
+const produtoController = require('../controllers/produtoController');
+
+router.get('/', auth, produtoController.listar);
+router.post('/', auth, produtoController.criar);
+router.put('/:id', auth, produtoController.atualizar);
+router.delete('/:id', auth, produtoController.excluir);
+router.get('/busca', auth, produtoController.buscar);
+
+module.exports = router;

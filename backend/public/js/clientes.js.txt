@@ -1,0 +1,64 @@
+async function carregarClientes() {
+  const res = await fetch('/api/clientes');
+  const clientes = await res.json();
+  const tbody = document.getElementById('listaClientes');
+  tbody.innerHTML = '';
+
+  clientes.forEach(c => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${c.nome}</td>
+      <td>${c.cpf || '---'}</td>
+      <td>${c.telefone || '---'}</td>
+      <td>
+        <button class="btn btn-sm btn-warning" onclick="editar(${c.id})">Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="excluir(${c.id})">Excluir</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function salvarCliente() {
+  const id = document.getElementById('clienteId').value;
+  const dados = {
+    nome: document.getElementById('nome').value,
+    cpf: document.getElementById('cpf').value,
+    telefone: document.getElementById('telefone').value
+  };
+
+  const method = id ? 'PUT' : 'POST';
+  const url = id ? `/api/clientes/${id}` : '/api/clientes';
+
+  const res = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dados)
+  });
+
+  if (res.ok) {
+    bootstrap.Modal.getInstance(document.getElementById('modalCliente')).hide();
+    carregarClientes();
+  }
+}
+
+function editar(id) {
+  fetch(`/api/clientes/${id}`)
+    .then(r => r.json())
+    .then(cliente => {
+      document.getElementById('clienteId').value = cliente.id;
+      document.getElementById('nome').value = cliente.nome;
+      document.getElementById('cpf').value = cliente.cpf;
+      document.getElementById('telefone').value = cliente.telefone;
+      new bootstrap.Modal(document.getElementById('modalCliente')).show();
+    });
+}
+
+async function excluir(id) {
+  if (confirm('Excluir cliente?')) {
+    await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
+    carregarClientes();
+  }
+}
+
+window.onload = carregarClientes;
