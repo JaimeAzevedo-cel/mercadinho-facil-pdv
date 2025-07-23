@@ -1,0 +1,17 @@
+
+---
+
+### 🧪 Dados Iniciais (para teste)
+
+```sql
+-- Usuário admin
+INSERT INTO usuarios (nome, email, senha) VALUES ('Admin', 'admin@mercadinho.com', '$2b$10$RQqj1.pN6Y3zZme3.jG.7eWb.9Y5m0V3x9Y5m0V3x9Y5m0V3x9Y5m'); -- senha: admin123
+
+-- Produtos de exemplo
+INSERT INTO produtos (nome, codigo_barras, categoria, preco, estoque, estoque_minimo) VALUES
+('Arroz 5kg', '7891234567890', 'Alimentos', 22.50, 15, 5),
+('Feijão 1kg', '7891234567891', 'Alimentos', 8.90, 8, 5),
+('Refrigerante 2L', '7891234567892', 'Bebidas', 9.50, 12, 3);
+
+-- Cliente exemplo
+INSERT INTO clientes (nome, cpf, telefone) VALUES ('João Silva', '12345678909', '(11) 98765-4321');

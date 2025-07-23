@@ -1,0 +1,6 @@
+exports.estoqueBaixo = async (req, res) => {
+  const [rows] = await pool.query(
+    'SELECT * FROM produtos WHERE estoque <= estoque_minimo'
+  );
+  res.json(rows);
+};

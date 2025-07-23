@@ -1,0 +1,96 @@
+let itens = [];
+let total = 0;
+
+async function carregarClientes() {
+  const res = await fetch('/api/clientes');
+  const clientes = await res.json();
+  const select = document.getElementById('cliente');
+  clientes.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.nome;
+    select.appendChild(opt);
+  });
+}
+
+async function buscarProduto(valor) {
+  const res = await fetch(`/api/produtos/busca?termo=${valor}`);
+  const produtos = await res.json();
+  if (produtos.length > 0) {
+    adicionarItemNaVenda(produtos[0]);
+  }
+}
+
+document.getElementById('buscaProduto').addEventListener('keypress', async (e) => {
+  if (e.key === 'Enter') {
+    await buscarProduto(e.target.value);
+    e.target.value = '';
+  }
+});
+
+function adicionarItemNaVenda(produto) {
+  const item = itens.find(i => i.produto.id === produto.id);
+  if (item) {
+    item.quantidade++;
+  } else {
+    itens.push({ produto, quantidade: 1 });
+  }
+  atualizarTabela();
+}
+
+function atualizarTabela() {
+  const tbody = document.getElementById('itensVenda');
+  tbody.innerHTML = '';
+  total = 0;
+
+  itens.forEach((item, index) => {
+    const tr = document.createElement('tr');
+    const totalItem = item.quantidade * item.produto.preco;
+    total += totalItem;
+
+    tr.innerHTML = `
+      <td>${item.produto.nome}</td>
+      <td><input type="number" value="${item.quantidade}" min="1" style="width:60px" onchange="mudarQtd(${index}, this.value)"></td>
+      <td>R$ ${item.produto.preco.toFixed(2)}</td>
+      <td>R$ ${totalItem.toFixed(2)}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="remover(${index})">X</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('totalVenda').textContent = total.toFixed(2);
+}
+
+function mudarQtd(index, qtd) {
+  itens[index].quantidade = parseInt(qtd);
+  atualizarTabela();
+}
+
+function remover(index) {
+  itens.splice(index, 1);
+  atualizarTabela();
+}
+
+async function fecharVenda() {
+  const venda = {
+    cliente_id: document.getElementById('cliente').value || null,
+    itens: itens.map(i => ({
+      produto_id: i.produto.id,
+      quantidade: i.produto.quantidade,
+      preco_unitario: i.produto.preco
+    })),
+    total,
+    forma_pagamento: document.getElementById('pagamento').value
+  };
+
+  const res = await fetch('/api/vendas', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(venda)
+  });
+
+  const data = await res.json();
+  if (data.success) {
+    window.location.href = `/nota.html?venda=${data.vendaId}`;
+  }
+}
